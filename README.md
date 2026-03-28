@@ -15,7 +15,7 @@
 
 It generates a highly shareable **"State Report Card"** that mathematically proves why your cousin Timmy is still the favorite.
 
-## ✨ Features (Why you no scale?)
+## ✨ Features
 * **Ruthless Repo Scraping:** Powered by **Tiny Fish**, we dive into your file structure, `README.md`, and commit history to find your deepest flaws.
 * **Market Auntie AI:** We pass your terrible code into **OpenAI**, equipped with a custom system prompt engineered to maximize emotional damage.
 * **The "Freshness" Meter:** A dynamic loading state that questions your life choices while the AI generates your roast.
@@ -24,7 +24,7 @@ It generates a highly shareable **"State Report Card"** that mathematically prov
 
 ---
 
-## 🏗 Tech Stack (The Ingredients)
+## 🏗 Tech Stack
 * **Frontend:** React + Vite (Because waiting for Webpack is for lazy people)
 * **Scraping Engine:** Tiny Fish
 * **Brain / Judgement Engine:** OpenAI API
