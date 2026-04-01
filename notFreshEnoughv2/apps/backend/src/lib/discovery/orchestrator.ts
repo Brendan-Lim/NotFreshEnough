@@ -1,9 +1,8 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import type OpenAI from "openai";
 import { load } from "cheerio";
 import { arePaidApisEnabled, getEffectiveTinyFishMode, type Env } from "../../config/env";
 import { createOpenAiClient } from "../openai/client";
+import { demoSearchResults } from "../tinyfish/demoSearchResults";
 import { fetchWebSurface } from "../tinyfish/fetchers/web";
 import { inspectEvidenceWithTinyFish, searchWithTinyFish, type TinyFishSearchHit } from "../tinyfishAdapter";
 import {
@@ -43,8 +42,6 @@ type DiscoveryResult = {
 interface DemoFixturePayload {
   results?: TinyFishSearchHit[];
 }
-
-const DEMO_SIMILAR_PROJECTS_FIXTURE_PATH = resolve(process.cwd(), "src/test/fixtures/tinyfish/search-results.json");
 
 const STOP_WORDS = new Set([
   "the",
@@ -438,7 +435,7 @@ async function loadDemoSimilarProjects(githubUrl: string) {
     });
   }
 
-  const fixture = JSON.parse(await readFile(DEMO_SIMILAR_PROJECTS_FIXTURE_PATH, "utf8")) as DemoFixturePayload;
+  const fixture = demoSearchResults as DemoFixturePayload;
   const repoName = repoRef.repo;
   const fullName = `${repoRef.owner}/${repoRef.repo}`;
   const results = (fixture.results ?? []).slice(0, 3).map((hit, index) => {

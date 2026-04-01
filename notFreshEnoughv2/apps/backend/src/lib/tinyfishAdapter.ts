@@ -1,6 +1,5 @@
-import { readFile } from "node:fs/promises";
-import { resolve } from "node:path";
 import { getEffectiveTinyFishMode, type Env } from "../config/env";
+import { demoSearchResults } from "./tinyfish/demoSearchResults";
 
 export interface TinyFishSearchHit {
   title: string;
@@ -36,7 +35,6 @@ export interface TinyFishEvidenceInspection {
   text: string;
 }
 
-const DEFAULT_FIXTURE_PATH = resolve(process.cwd(), "src/test/fixtures/tinyfish/search-results.json");
 const RUN_USER_AGENT = "NotFreshEnough/1.0";
 
 function sanitizeRequestForLog(input: TinyFishSearchRequest) {
@@ -241,7 +239,7 @@ function extractEvidenceInspection(payload: TinyFishSearchResponse): TinyFishEvi
 }
 
 async function loadMockHits() {
-  const payload = JSON.parse(await readFile(DEFAULT_FIXTURE_PATH, "utf8")) as TinyFishSearchResponse;
+  const payload = demoSearchResults as TinyFishSearchResponse;
   return [...(payload.results ?? []), ...(payload.hits ?? []), ...(payload.candidates ?? [])]
     .map(normalizeHit)
     .filter((hit): hit is TinyFishSearchHit => Boolean(hit));
