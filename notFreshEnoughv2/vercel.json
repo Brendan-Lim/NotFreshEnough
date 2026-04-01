@@ -1,10 +1,13 @@
 {
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "installCommand": "npm install",
-  "buildCommand": "npm run build --workspace apps/frontend",
+  "buildCommand": "npm run build",
   "outputDirectory": "apps/frontend/dist",
   "functions": {
-    "api/[...route].ts": {
+    "api/judge.ts": {
+      "maxDuration": 60
+    },
+    "api/similar-projects.ts": {
       "maxDuration": 60
     }
   },
