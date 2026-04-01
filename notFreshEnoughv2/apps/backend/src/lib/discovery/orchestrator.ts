@@ -1,6 +1,6 @@
 import type OpenAI from "openai";
 import { load } from "cheerio";
-import type { Env } from "../../config/env";
+import { arePaidApisEnabled, getEffectiveTinyFishMode, type Env } from "../../config/env";
 import { createOpenAiClient } from "../openai/client";
 import { fetchWebSurface } from "../tinyfish/fetchers/web";
 import { inspectEvidenceWithTinyFish, searchWithTinyFish, type TinyFishSearchHit } from "../tinyfishAdapter";
@@ -481,6 +481,10 @@ export async function discoverSimilarProjects(
     .sort((left, right) => right.similarity_score - left.similarity_score)
     .slice(0, 3);
 
+  const demoModeActive = !arePaidApisEnabled(env);
+  const usingMockTinyFish = getEffectiveTinyFishMode(env) === "mock";
+  const discoveryLabel = usingMockTinyFish ? "mock TinyFish fixtures and public fallback sources" : "TinyFish discovery sources";
+
   return SimilarProjectsResponseSchema.parse({
     input_repo: {
       full_name: inputRepo.fullName,
@@ -494,7 +498,9 @@ export async function discoverSimilarProjects(
     project_status: results.length > 0 ? "cousins_found" : "original_project",
     message:
       results.length > 0
-        ? `Found ${results.length} similar public project${results.length === 1 ? "" : "s"} across TinyFish discovery sources.`
-        : "No cousin projects were confirmed. This appears to be an original idea project."
+        ? `${demoModeActive ? "Demo mode: " : ""}Found ${results.length} similar public project${
+            results.length === 1 ? "" : "s"
+          } across ${discoveryLabel}.`
+        : `${demoModeActive ? "Demo mode: " : ""}No cousin projects were confirmed. This appears to be an original idea project.`
   });
 }

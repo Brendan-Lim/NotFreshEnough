@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
-import type { Env } from "../config/env";
+import { getEffectiveTinyFishMode, type Env } from "../config/env";
 
 export interface TinyFishSearchHit {
   title: string;
@@ -281,7 +281,7 @@ async function postTinyFishRun(url: string, apiKey: string, body: string, attemp
 export async function searchWithTinyFish(input: TinyFishSearchRequest, env: Env): Promise<TinyFishSearchHit[]> {
   console.info("[TinyFish] run request", JSON.stringify(sanitizeRequestForLog(input)));
 
-  if (env.TINYFISH_MODE === "mock") {
+  if (getEffectiveTinyFishMode(env) === "mock") {
     const hits = (await loadMockHits())
       .filter((hit) => !hasBlacklistedFragment(hit.url, input.blacklist))
       .slice(0, input.max_results);
@@ -335,7 +335,7 @@ export async function searchWithTinyFish(input: TinyFishSearchRequest, env: Env)
 }
 
 export async function inspectEvidenceWithTinyFish(url: string, env: Env): Promise<TinyFishEvidenceInspection | null> {
-  if (env.TINYFISH_MODE === "mock" || !env.TINYFISH_API_KEY) {
+  if (getEffectiveTinyFishMode(env) === "mock" || !env.TINYFISH_API_KEY) {
     return null;
   }
 

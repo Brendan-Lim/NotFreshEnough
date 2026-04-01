@@ -51,9 +51,32 @@ const emptyToDefault = <T extends z.ZodTypeAny>(schema: T, defaultValue: z.input
     return value;
   }, schema.default(defaultValue as z.infer<T>));
 
+const booleanFromEnv = (defaultValue: boolean) =>
+  z.preprocess((value) => {
+    if (typeof value === "string") {
+      const normalized = value.trim().toLowerCase();
+      if (normalized === "") {
+        return undefined;
+      }
+
+      if (["true", "1", "yes", "on"].includes(normalized)) {
+        return true;
+      }
+
+      if (["false", "0", "no", "off"].includes(normalized)) {
+        return false;
+      }
+    }
+
+    return value;
+  }, z.boolean().default(defaultValue));
+
+const defaultEnablePaidApis = process.env.NODE_ENV !== "production";
+
 const EnvSchema = z.object({
   BACKEND_PORT: z.coerce.number().int().positive().default(8787),
   FRONTEND_ORIGIN: z.string().trim().min(1).default("http://localhost:5173"),
+  ENABLE_PAID_APIS: booleanFromEnv(defaultEnablePaidApis),
   GITHUB_TOKEN: emptyToUndefined(z.string().trim().min(1)),
   BING_SEARCH_KEY: emptyToUndefined(z.string().trim().min(1)),
   OPENAI_API_KEY: emptyToUndefined(z.string().trim().min(1)),
@@ -67,3 +90,11 @@ const EnvSchema = z.object({
 export const env = EnvSchema.parse(process.env);
 
 export type Env = typeof env;
+
+export function arePaidApisEnabled(env: Env) {
+  return env.ENABLE_PAID_APIS;
+}
+
+export function getEffectiveTinyFishMode(env: Env) {
+  return arePaidApisEnabled(env) ? env.TINYFISH_MODE : "mock";
+}

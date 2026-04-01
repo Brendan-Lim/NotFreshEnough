@@ -1,8 +1,8 @@
 import OpenAI from "openai";
-import type { Env } from "../../config/env";
+import { arePaidApisEnabled, type Env } from "../../config/env";
 
 export function createOpenAiClient(env: Env) {
-  if (!env.OPENAI_API_KEY) {
+  if (!arePaidApisEnabled(env) || !env.OPENAI_API_KEY) {
     return null;
   }
 

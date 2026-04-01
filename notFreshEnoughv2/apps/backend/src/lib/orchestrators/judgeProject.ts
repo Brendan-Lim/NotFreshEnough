@@ -1,4 +1,4 @@
-import type { Env } from "../../config/env";
+import { arePaidApisEnabled, getEffectiveTinyFishMode, type Env } from "../../config/env";
 import { buildSharedAnalysis } from "../analysis/buildSharedAnalysis";
 import { createOpenAiClient } from "../openai/client";
 import { generateFamilyPanel } from "../personas/generateFamilyPanel";
@@ -36,8 +36,14 @@ export async function judgeProject(input: JudgeProjectInput, env: Env) {
     inputEcho: input,
     analysis,
     tinyFish: {
-      investigationMode: investigation.metadata.investigationMode,
-      warnings: [...investigation.metadata.warnings, ...investigation.metadata.partialFailures],
+      investigationMode: getEffectiveTinyFishMode(env) === "sdk" ? investigation.metadata.investigationMode : "mock",
+      warnings: [
+        ...(!arePaidApisEnabled(env)
+          ? ["Demo mode is active in production. Paid OpenAI and TinyFish calls are disabled."]
+          : []),
+        ...investigation.metadata.warnings,
+        ...investigation.metadata.partialFailures
+      ],
       sourcesInspected: analysis.sourcesInspected.length
     },
     panel: {
