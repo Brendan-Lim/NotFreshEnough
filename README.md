@@ -52,3 +52,11 @@ git clone [https://github.com/Matthiaschanjk/NotFreshEnough.git](https://github.
 cd NotFreshEnoughv2
 npm i
 npm run dev
+```
+---
+
+## 🧑🏻‍💻 Demo
+
+**Demo Link**: https://not-fresh-enough.vercel.app/
+
+Note: NotFreshEnough Demo does not call TinyFish, OpenAI, or live GitHub scraping paths. Some repo details, proof signals, and cousin-project comparisons will be incomplete or approximate. Use the live version instead for better results.
