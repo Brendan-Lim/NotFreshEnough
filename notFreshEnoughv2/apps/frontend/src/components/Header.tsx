@@ -8,8 +8,8 @@ export function Header() {
           <FishMascot compact />
         </div>
         <div className="text-center">
-          <p className="font-body text-xs uppercase tracking-[0.38em] text-ink/50">An AI Family Panel Powered by TinyFish</p>
-          <h1 className="font-display text-5xl leading-none text-ink md:text-7xl">NotFreshEnough</h1>
+          <p className="font-body text-xs uppercase tracking-[0.38em] text-ink/50">Demo Build Of The AI Family Panel</p>
+          <h1 className="font-display text-5xl leading-none text-ink md:text-7xl">NotFreshEnough Demo</h1>
         </div>
       </div>
       <div className="ink-divider mt-5" />

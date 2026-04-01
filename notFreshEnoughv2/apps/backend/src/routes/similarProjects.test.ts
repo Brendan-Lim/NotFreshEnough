@@ -20,10 +20,11 @@ function textResponse(body: string, status = 200) {
   });
 }
 
-function createEnv(mode: "mock" | "sdk" | "api" = "sdk") {
+function createEnv(mode: "mock" | "sdk" | "api" = "sdk", enablePaidApis = true) {
   return {
     BACKEND_PORT: 8787,
     FRONTEND_ORIGIN: "http://localhost:5173",
+    ENABLE_PAID_APIS: enablePaidApis,
     GITHUB_TOKEN: undefined,
     BING_SEARCH_KEY: "bing-key",
     OPENAI_API_KEY: undefined,
@@ -464,5 +465,21 @@ describe("POST /api/similar-projects", () => {
     expect((body as { results: Array<{ source: string }> }).results.some((result) => result.source === "devpost")).toBe(true);
     expect(fetchMock).not.toHaveBeenCalledWith("https://agent.tinyfish.ai/v1/search", expect.anything());
     expect(fetchMock).not.toHaveBeenCalledWith("https://agent.tinyfish.ai/v1/automation/run", expect.anything());
+  });
+
+  test("supports fully offline demo mode without any network calls", async () => {
+    fetchMock.mockImplementation(async () => {
+      throw new Error("fetch should not be called in offline demo mode");
+    });
+
+    const { body, nextError, statusCode } = await invokeSimilarProjectsRoute(createJudgeRouter(createEnv("sdk", false)));
+
+    expect(nextError).toBeNull();
+    expect(statusCode).toBe(200);
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect((body as { input_repo: { full_name: string } }).input_repo.full_name).toBe("octocat/Hello-World");
+    expect((body as { results: Array<{ source: string }> }).results.length).toBeGreaterThan(0);
+    expect((body as { message?: string }).message).toContain("NotFreshEnough Demo");
+    expect((body as { message?: string }).message).toContain("Use the live version instead");
   });
 });

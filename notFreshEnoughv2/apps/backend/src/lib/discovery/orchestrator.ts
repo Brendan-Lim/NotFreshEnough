@@ -1,3 +1,5 @@
+import { readFile } from "node:fs/promises";
+import { resolve } from "node:path";
 import type OpenAI from "openai";
 import { load } from "cheerio";
 import { arePaidApisEnabled, getEffectiveTinyFishMode, type Env } from "../../config/env";
@@ -37,6 +39,12 @@ type DiscoveryResult = {
   demo_url_present: boolean;
   docs_quality: "low" | "med" | "high";
 };
+
+interface DemoFixturePayload {
+  results?: TinyFishSearchHit[];
+}
+
+const DEMO_SIMILAR_PROJECTS_FIXTURE_PATH = resolve(process.cwd(), "src/test/fixtures/tinyfish/search-results.json");
 
 const STOP_WORDS = new Set([
   "the",
@@ -411,6 +419,64 @@ function dedupeHits(hits: TinyFishSearchHit[]) {
   return [...deduped.values()];
 }
 
+async function loadDemoSimilarProjects(githubUrl: string) {
+  const repoRef = parseGitHubRepoUrl(githubUrl);
+  if (!repoRef) {
+    return SimilarProjectsResponseSchema.parse({
+      input_repo: {
+        full_name: githubUrl,
+        url: githubUrl,
+        languages: [],
+        topics: [],
+        description:
+          "The demo version could not parse the submitted GitHub URL correctly. Use the live version instead for proper scraping and more accurate cousin matching.",
+        stars: 0
+      },
+      results: [],
+      project_status: "error",
+      message: "NotFreshEnough Demo could not understand that GitHub URL correctly. Use the live version instead."
+    });
+  }
+
+  const fixture = JSON.parse(await readFile(DEMO_SIMILAR_PROJECTS_FIXTURE_PATH, "utf8")) as DemoFixturePayload;
+  const repoName = repoRef.repo;
+  const fullName = `${repoRef.owner}/${repoRef.repo}`;
+  const results = (fixture.results ?? []).slice(0, 3).map((hit, index) => {
+    const githubRef = parseGitHubRepoUrl(hit.url);
+
+    return {
+      full_name: githubRef ? `${githubRef.owner}/${githubRef.repo}` : undefined,
+      url: hit.url,
+      source: hit.source,
+      one_line_description: hit.snippet,
+      similarity_score: Number((0.82 - index * 0.11).toFixed(4)),
+      primary_language:
+        hit.source === "github" ? "TypeScript" : hit.source === "devpost" ? "TypeScript" : "Implementation details not exposed in public materials",
+      stars: hit.source === "github" ? 64 - index * 9 : undefined,
+      topic_overlap: ["hackathon", "ai"].slice(0, hit.source === "linkedin" ? 1 : 2),
+      demo_url_present: hit.source !== "linkedin",
+      docs_quality: hit.source === "linkedin" ? "low" : "med"
+    };
+  });
+
+  return SimilarProjectsResponseSchema.parse({
+    input_repo: {
+      full_name: fullName,
+      url: githubUrl,
+      languages: [],
+      topics: ["hackathon", "ai"],
+      description: `${repoName} is being compared using demo fixtures rather than live GitHub or TinyFish scraping. Use the live version instead for more accurate cousin discovery.`,
+      stars: 0
+    },
+    results,
+    project_status: results.length > 0 ? "cousins_found" : "original_project",
+    message:
+      results.length > 0
+        ? `NotFreshEnough Demo is showing ${results.length} fixture-based cousin project${results.length === 1 ? "" : "s"}. Use the live version instead for more accurate scraping and matching.`
+        : "NotFreshEnough Demo could not determine cousin projects accurately here. Use the live version instead."
+  });
+}
+
 export async function discoverSimilarProjects(
   githubUrl: string,
   env: Env,
@@ -418,6 +484,10 @@ export async function discoverSimilarProjects(
     openAiClient?: OpenAI | null;
   }
 ) {
+  if (!arePaidApisEnabled(env)) {
+    return loadDemoSimilarProjects(githubUrl);
+  }
+
   const inputRepo = await fetchGitHubProjectFromUrl(githubUrl, env).catch(() => null);
   if (!inputRepo) {
     return SimilarProjectsResponseSchema.parse({

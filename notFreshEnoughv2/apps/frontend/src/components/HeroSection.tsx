@@ -22,9 +22,15 @@ export function HeroSection({ values, isSubmitting, errorMessage, onChange, onSu
           Submit for <span className="text-bronze">Judgement</span>
         </h2>
         <p className="mt-6 max-w-xl font-body text-lg leading-8 text-ink/72">
-          TinyFish inspects your repo, demo, docs, and whatever other public surface you hand over. Then one click
-          summons the whole AI family panel to decide whether your project is actually fresh enough for judges.
+          This demo version does not make live TinyFish or OpenAI API calls. It uses fixture-based fallback logic for
+          the family panel, so use the live version instead if you want accurate scraping and a more trustworthy report.
         </p>
+
+        <div className="mt-6 rounded-[1.5rem] border border-cinnabar/20 bg-cinnabar/5 px-5 py-4 font-body text-sm leading-6 text-cinnabar">
+          Warning: NotFreshEnough Demo does not call TinyFish, OpenAI, or live GitHub scraping paths. Some repo details,
+          proof signals, and cousin-project comparisons will be incomplete or approximate. Use the live version instead
+          for better results.
+        </div>
 
         <div className="mt-8 rounded-[2rem] border border-ink/10 bg-white/65 p-5 shadow-paper backdrop-blur md:p-6">
           <RepoSubmissionForm

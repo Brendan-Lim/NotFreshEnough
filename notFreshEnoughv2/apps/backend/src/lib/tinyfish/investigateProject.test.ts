@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, jest, test } from "@jest/globals";
 import type { Env } from "../../config/env";
 import { createTinyFishClient, investigateProject } from "./investigateProject";
+import { DemoTinyFishClient } from "./demoTinyFishClient";
 import { MockTinyFishClient } from "./mockTinyFishClient";
 import { RealTinyFishClient } from "./realTinyFishClient";
 
@@ -16,6 +17,7 @@ function jsonResponse(body: unknown, status = 200) {
 const baseEnv: Env = {
   BACKEND_PORT: 8787,
   FRONTEND_ORIGIN: "http://localhost:5173",
+  ENABLE_PAID_APIS: true,
   GITHUB_TOKEN: undefined,
   BING_SEARCH_KEY: undefined,
   OPENAI_API_KEY: undefined,
@@ -27,6 +29,15 @@ const baseEnv: Env = {
 };
 
 describe("TinyFish client selection", () => {
+  test("uses the offline demo client when paid APIs are disabled", () => {
+    const client = createTinyFishClient({
+      ...baseEnv,
+      ENABLE_PAID_APIS: false
+    });
+
+    expect(client).toBeInstanceOf(DemoTinyFishClient);
+  });
+
   test("uses the mock client when TINYFISH_MODE=mock", () => {
     const client = createTinyFishClient(baseEnv);
     expect(client).toBeInstanceOf(MockTinyFishClient);
@@ -153,5 +164,40 @@ describe("TinyFish sdk investigation", () => {
         body: expect.stringContaining("https://github.com/octocat/Hello-World")
       })
     );
+  });
+});
+
+describe("TinyFish demo investigation", () => {
+  const fetchMock = jest.fn<typeof fetch>();
+
+  beforeEach(() => {
+    fetchMock.mockImplementation(async () => {
+      throw new Error("fetch should not be called in demo mode");
+    });
+    global.fetch = fetchMock as typeof fetch;
+  });
+
+  afterEach(() => {
+    fetchMock.mockReset();
+  });
+
+  test("returns an offline investigation without touching the network", async () => {
+    const result = await investigateProject(
+      {
+        repoUrl: "https://github.com/octocat/Hello-World",
+        demoUrl: "https://hello-world.demo",
+        projectBlurb: "AI judging helper for hackathon teams."
+      },
+      {
+        ...baseEnv,
+        ENABLE_PAID_APIS: false
+      }
+    );
+
+    expect(fetchMock).not.toHaveBeenCalled();
+    expect(result.repo.fullName).toBe("octocat/Hello-World");
+    expect(result.metadata.investigationMode).toBe("mock");
+    expect(result.metadata.warnings).toEqual([]);
+    expect(result.surfaces.some((surface) => surface.surfaceType === "demo" && surface.status === "ok")).toBe(true);
   });
 });

@@ -51,7 +51,7 @@ export function RepoSubmissionForm({ values, isSubmitting, errorMessage, onChang
 
       <div className="flex items-center justify-between">
         <p className="font-body text-sm text-ink/68">
-          TinyFish will inspect the repo once, then the whole family judges from the same evidence.
+          The demo build judges from fallback evidence only. Use the live version instead for real scraping and more accurate results.
         </p>
         <button
           type="button"
