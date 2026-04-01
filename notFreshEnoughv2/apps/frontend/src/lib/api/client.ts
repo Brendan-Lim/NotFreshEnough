@@ -13,8 +13,16 @@ export async function judgeProject(input: JudgeProjectRequest) {
   });
 
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-    throw new Error(payload?.message ?? "The family panel refused to process this repo.");
+    const text = await response.text().catch(() => "");
+    let payload: { message?: string } | null = null;
+    if (text) {
+      try {
+        payload = JSON.parse(text) as { message?: string };
+      } catch {
+        payload = null;
+      }
+    }
+    throw new Error(payload?.message ?? `The family panel refused to process this repo (HTTP ${response.status}).`);
   }
 
   return (await response.json()) as JudgeProjectResponse;
@@ -32,8 +40,16 @@ export async function fetchSimilarProjects(githubUrl: string) {
   });
 
   if (!response.ok) {
-    const payload = (await response.json().catch(() => null)) as { message?: string } | null;
-    throw new Error(payload?.message ?? "Your cousins refused to show themselves.");
+    const text = await response.text().catch(() => "");
+    let payload: { message?: string } | null = null;
+    if (text) {
+      try {
+        payload = JSON.parse(text) as { message?: string };
+      } catch {
+        payload = null;
+      }
+    }
+    throw new Error(payload?.message ?? `Your cousins refused to show themselves (HTTP ${response.status}).`);
   }
 
   return (await response.json()) as SimilarProjectsResponse;
