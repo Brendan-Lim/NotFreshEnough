@@ -1,6 +1,7 @@
 {
   "name": "notfreshenough",
   "private": true,
+  "type": "module",
   "workspaces": [
     "apps/*"
   ],
