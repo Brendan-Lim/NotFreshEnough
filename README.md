@@ -37,10 +37,11 @@ It generates a highly shareable **"State Report Card"** that mathematically prov
 ---
 
 ## 🏗 Tech Stack
-* **Frontend:** React + Vite (Because waiting for Webpack is for lazy people)
-* **Scraping Engine:** Tiny Fish
-* **Brain / Judgement Engine:** OpenAI API
-* **Styling:** CSS
+* **Frontend:** React, Vite
+* **Backend** Express.js, Node.js, TypeScript
+* **Scraping Engine:** TinyFish AI Web Agent
+* **Judgement Engine:** OpenAI
+* **Styling:** Tailwind CSS, CSS
 
 ---
 
